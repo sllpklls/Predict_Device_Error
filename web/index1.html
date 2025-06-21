@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống quản lý thiết bị</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-260px);
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            color: white;
+            font-size: 1.4em;
+            margin-bottom: 5px;
+            font-weight: 300;
+        }
+
+        .sidebar-header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .menu-item.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .menu-item .icon {
+            font-size: 1.2em;
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-item .text {
+            font-weight: 500;
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .submenu.open {
+            max-height: 200px;
+        }
+
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px 12px 60px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .submenu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .submenu-item.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: white;
+        }
+
+        /* Mobile toggle button */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(44, 62, 80, 0.9);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.full-width {
+            margin-left: 0;
+        }
+
+        .page-content {
+            display: none;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        input:hover, select:hover {
+            border-color: #667eea;
+        }
+
+        .priority-select {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            font-weight: bold;
+        }
+
+        .priority-select option {
+            background: white;
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .test-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .clear-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .clear-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .response-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .response-area.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success {
+            color: #28a745;
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .api-url-group {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Response table styles */
+        .api-response {
+            margin-top: 20px;
+        }
+
+        .response-section {
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .response-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .response-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .response-table th,
+        .response-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .response-table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .response-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .prediction-result {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .prediction-safe {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .prediction-risk {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .probability-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .probability-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .prob-safe {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        .prob-risk {
+            background: linear-gradient(45deg, #dc3545, #ff6b6b);
+        }
+
+        .feature-value {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Page content styles */
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card .icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .feature-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-260px);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 70px 15px 20px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile menu toggle -->
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>🖥️ Device Manager</h2>
+            <p>Hệ thống quản lý thiết bị</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a class="menu-item active" onclick="showPage('home')">
+                <span class="icon">🏠</span>
+                <span class="text">Trang chủ</span>
+            </a>
+            
+            <a class="menu-item" onclick="toggleSubmenu('features')">
+                <span class="icon">⚡</span>
+                <span class="text">Tính năng</span>
+                <span style="margin-left: auto;">▼</span>
+            </a>
+            <div class="submenu" id="features-submenu">
+                <a class="submenu-item" onclick="showPage('prediction')">
+                    <span class="text">🎯 Dự đoán rủi ro</span>
+                </a>
+                <a class="submenu-item" onclick="showPage('analytics')">
+                    <span class="text">📊 Phân tích dữ liệu</span>
+                </a>
+                <a class="submenu-item" onclick="showPage('reports')">
+                    <span class="text">📋 Báo cáo</span>
+                </a>
+            </div>
+            
+            <a class="menu-item" onclick="showPage('devices')">
+                <span class="icon">💻</span>
+                <span class="text">Quản lý thiết bị</span>
+            </a>
+            
+            <a class="menu-item" onclick="showPage('monitoring')">
+                <span class="icon">📈</span>
+                <span class="text">Giám sát</span>
+            </a>
+            
+            <a class="menu-item" onclick="showPage('info')">
+                <span class="icon">ℹ️</span>
+                <span class="text">Thông tin</span>
+            </a>
+            
+            <a class="menu-item" onclick="showPage('settings')">
+                <span class="icon">⚙️</span>
+                <span class="text">Cài đặt</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content" id="mainContent">
+        <!-- Home Page -->
+        <div class="page-content active" id="home">
+            <div class="container">
+                <div class="page-header">
+                    <h1>🏠 Chào mừng đến với Device Manager</h1>
+                    <p>Hệ thống quản lý và dự đoán rủi ro thiết bị thông minh</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">🎯</div>
+                        <h3>Dự đoán rủi ro</h3>
+                        <p>Sử dụng AI để dự đoán rủi ro bảo mật và hoạt động của thiết bị với độ chính xác cao</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="icon">📊</div>
+                        <h3>Phân tích thông minh</h3>
+                        <p>Phân tích dữ liệu thiết bị chi tiết để đưa ra những thông tin hữu ích</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="icon">📈</div>
+                        <h3>Giám sát realtime</h3>
+                        <p>Theo dõi trạng thái thiết bị theo thời gian thực và cảnh báo kịp thời</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="icon">🔒</div>
+                        <h3>Bảo mật cao</h3>
+                        <p>Đảm bảo an toàn dữ liệu với các biện pháp bảo mật hiện đại</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Page -->
+        <div class="page-content" id="prediction">
+            <div class="container">
+                <h1>🎯 Dự đoán rủi ro thiết bị</h1>
+                
+                <form id="deviceForm">
+                    <div class="api-url-group">
+                        <div class="form-group">
+                            <label for="apiUrl">🔗 API URL</label>
+                            <input type="url" id="apiUrl" placeholder="https://api.example.com/devices" required>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="manufacturer">🏭 Nhà sản xuất</label>
+                            <select id="manufacturer" required>
+                                <option value="Cisco Systems">Cisco Systems</option>
+                                <option value="VMware, Inc.">VMware, Inc.</option>
+                                <option value="F5 Networks">F5 Networks</option>
+                                <option value="Juniper Networks">Juniper Networks</option>
+                                <option value="Check Point">Check Point</option>
+                                <option value="Citrix">Citrix</option>
+                                <option value="Palo Alto Networks">Palo Alto Networks</option>
+                                <option value="HP">HP</option>
+                                <option value="Oracle Corporation">Oracle Corporation</option>
+                                <option value="NetApp">NetApp</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="location">📍 Vị trí</label>
+                            <input type="text" id="location" value="Unknown" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="deviceType">💻 Loại thiết bị</label>
+                            <select id="deviceType" required>
+                                <option value="Server" selected>Server</option>
+                                <option value="Router">Router</option>
+                                <option value="LoadBalancer">LoadBalancer</option>
+                                <option value="Firewall">Firewall</option>
+                                <option value="Layer 3 Switch">Layer 3 Switch</option>
+                                <option value="Gateway">Gateway</option>
+                                <option value="Switch">Switch</option>
+                                <option value="Self-contained NAS">Self-contained NAS</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="priority">⚡ Mức độ ưu tiên</label>
+                            <select id="priority" class="priority-select" required>
+                                <option value="PRIORITY_1" selected>PRIORITY_1</option>
+                                <option value="PRIORITY_2">PRIORITY_2</option>
+                                <option value="PRIORITY_3">PRIORITY_3</option>
+                                <option value="PRIORITY_4">PRIORITY_4</option>
+                                <option value="PRIORITY_5">PRIORITY_5</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="eosDate">📅 Ngày hết hỗ trợ (EOS)</label>
+                            <input type="datetime-local" id="eosDate" value="2029-09-01T07:00" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="eossDate">🔒 Ngày hết hỗ trợ bảo mật (EOSS)</label>
+                            <input type="datetime-local" id="eossDate" value="2024-09-01T07:00" required>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="osVersion">🖥️ Phiên bản hệ điều hành</label>
+                            <input type="text" id="osVersion" value="Windows Server 2019" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="totalMemory">💾 Tổng bộ nhớ (MB)</label>
+                            <input type="number" id="totalMemory" value="4096" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="logicalProcessors">⚙️ Số bộ xử lý logic</label>
+                            <input type="number" id="logicalProcessors" value="0" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cores">🔧 Số lõi xử lý</label>
+                            <input type="number" id="cores" value="0" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="test-btn" onclick="testApiConnection()">
+                            🔍 Test API
+                        </button>
+                        <button type="submit" class="submit-btn">
+                            📤 Gửi dữ liệu
+                        </button>
+                        <button type="button" class="clear-btn" onclick="clearForm()">
+                            🗑️ Xóa form
+                        </button>
+                    </div>
+                </form>
+
+                <div id="responseArea" class="response-area">
+                    <h3>📋 Kết quả API:</h3>
+                    <div id="responseContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div class="page-content" id="analytics">
+            <div class="container">
+                <div class="page-header">
+                    <h1>📊 Phân tích dữ liệu</h1>
+                    <p>Trang phân tích dữ liệu thiết bị đang được phát triển</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">📈</div>
+                        <h3>Biểu đồ xu hướng</h3>
+                        <p>Phân tích xu hướng hoạt động và hiệu suất thiết bị theo thời gian</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="icon">🎯</div>
+                        <h3>Thống kê rủi ro</h3>
+                        <p>Báo cáo thống kê về các mức độ rủi ro khác nhau trong hệ thống</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Page -->
+        <div class="page-content" id="reports">
+            <div class="container">
+                <div class="page-header">
+                    <h1>📋 Báo cáo</h1>
+                    <p>Tạo và xuất các báo cáo chi tiết về thiết bị</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">📄</div>
+                        <h3>Báo cáo hàng ngày</h3>
+                        <p>Tự động tạo báo cáo tình trạng thiết bị hàng ngày</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="icon">📊</div>
+                        <h3>Báo cáo tùy chỉnh</h3>
+                        <p>Tạo báo cáo theo yêu cầu với các tiêu chí cụ thể</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devices Page -->
+        <div class="page-content" id="devices">
+            <div class="container">
+                <div class="page-header">
+                    <h1>💻 Quản lý thiết bị</h1>
+                    <p>Danh sách và quản lý tất cả thiết bị trong hệ thống</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">📋</div>
+                        <h3>Danh sách thiết bị</h3>
+                        <p>Xem danh sách đầy đủ các thiết bị được quản lý</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="icon">➕</div>
+                        <h3>Thêm thiết bị mới</h3>
+                        <p>Đăng ký và cấu hình thiết bị mới vào hệ thống</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Page -->
+        <div class="page-content" id="monitoring">
+            <div class="container">
+                <div class="page-header">
+                    <h1>📈 Giám sát</h1>
+                    <p>Theo dõi trạng thái hoạt động của thiết bị theo thời gian thực</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">🔴</div>
+                        <h3>Cảnh báo</h3>
+                        <p>Hệ thống cảnh báo tự động khi phát hiện sự cố</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="icon">⏰</div>
+                        <h3>Lịch sử</h3>
+                        <p>Xem lịch sử hoạt động và sự kiện của từng thiết bị</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Page -->
+        <div class="page-content" id="info">
+            <div class="container">
+                <div class="page-header">
+                    <h1>ℹ️ Thông tin</h1>
+                    <p>Thông tin về hệ thống và hướng dẫn sử dụng</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">📖</div>
+                        <h3>Hướng dẫn sử dụng</h3>
+                        <p>Tài liệu hướng dẫn chi tiết cách sử dụng các tính năng</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="icon">

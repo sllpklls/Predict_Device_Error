@@ -15,7 +15,147 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-260px);
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            color: white;
+            font-size: 1.4em;
+            margin-bottom: 5px;
+            font-weight: 300;
+        }
+
+        .sidebar-header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .menu-item.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .menu-item .icon {
+            font-size: 1.2em;
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .menu-item .text {
+            font-weight: 500;
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .submenu.open {
+            max-height: 200px;
+        }
+
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px 12px 60px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .submenu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .submenu-item.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: white;
+        }
+
+        /* Mobile toggle button */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(44, 62, 80, 0.9);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
             padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.full-width {
+            margin-left: 0;
+        }
+
+        .page-content {
+            display: none;
+        }
+
+        .page-content.active {
+            display: block;
         }
 
         .container {
@@ -195,7 +335,7 @@
             grid-column: 1 / -1;
         }
 
-        /* Styles for API response tables */
+        /* Response table styles */
         .api-response {
             margin-top: 20px;
         }
@@ -292,9 +432,158 @@
             padding: 2px 6px;
             border-radius: 4px;
         }
+
+        /* Page content styles */
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card .icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .feature-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-260px);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 70px 15px 20px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
     </style>
 </head>
 <body>
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>🖥️ Device Manager</h2>
+            <p>Hệ thống quản lý thiết bị</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a class="menu-item active" onclick="showPage('home')">
+                <span class="icon">🏠</span>
+                <span class="text">Trang chủ</span>
+            </a>
+            
+            <a class="menu-item" onclick="toggleSubmenu('features')">
+                <span class="icon">⚡</span>
+                <span class="text">Tính năng</span>
+                <span style="margin-left: auto;">▼</span>
+            </a>
+            <div class="submenu" id="features-submenu">
+                <a class="submenu-item" onclick="showPage('prediction')" href = "index1.html">
+                    <span class="text">🎯 Dự đoán rủi ro</span>
+                </a>
+                <a class="submenu-item" onclick="showPage('analytics')">
+                    <span class="text">📊 Phân tích dữ liệu</span>
+                </a>
+                <a class="submenu-item" onclick="showPage('reports')">
+                    <span class="text">📋 Báo cáo</span>
+                </a>
+            </div>
+            
+            <a class="menu-item" onclick="showPage('devices')">
+                <span class="icon">💻</span>
+                <span class="text">Quản lý thiết bị</span>
+            </a>
+            
+            <a class="menu-item" onclick="showPage('monitoring')">
+                <span class="icon">📈</span>
+                <span class="text">Giám sát</span>
+            </a>
+            
+            <a class="menu-item" onclick="showPage('info')">
+                <span class="icon">ℹ️</span>
+                <span class="text">Thông tin</span>
+            </a>
+            
+            <a class="menu-item" onclick="showPage('settings')">
+                <span class="icon">⚙️</span>
+                <span class="text">Cài đặt</span>
+            </a>
+        </div>
+    </nav>
     <div class="container">
         <h1>🖥️ Thông tin thiết bị</h1>
         

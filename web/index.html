@@ -541,7 +541,7 @@
         </div>
         
         <div class="sidebar-menu">
-            <a class="menu-item active" onclick="showPage('home')">
+            <a class="menu-item" onclick="window.location.href = 'home.html';"">
                 <span class="icon">🏠</span>
                 <span class="text">Trang chủ</span>
             </a>
@@ -693,6 +693,19 @@
     </div>
 
     <script>
+        function showPage(page) {
+            fetch(page + ".html")
+                .then(response => {
+                    if (!response.ok) throw new Error("Không thể tải trang: " + page);
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById("content").innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById("content").innerHTML = "<p>Lỗi: " + error.message + "</p>";
+                });
+        }
         function formatDateTime(dateTimeString) {
             const date = new Date(dateTimeString);
             return date.toLocaleString('en-US', {
@@ -780,7 +793,7 @@
                         </div>
                     `;
                 }
-                
+                data.debug_info = false;
                 // Debug Info Section
                 if (data.debug_info) {
                     html += `
